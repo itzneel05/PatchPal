@@ -1,69 +1,173 @@
-import Image from "next/image";
+/* --------------------------------------------------------------
+   PatchPal Dashboard — Frontend (MVP simplified)
+   Design: `design-taste-frontend` rules applied
+   - Geist font, neutral gray palette, one accent color only
+   - Restrained motion, CSS Grid Bento layout
+   -------------------------------------------------------------- */
+
+"use client";
+
+import { useDigest, Digest, Vulnerability } from "@/hooks/use-digest";
+
+import { motion } from "motion/react";
+import { Shield } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const {
+    data: digest,
+    isLoading,
+    isError,
+    error,
+    mutate,
+  } = useDigest();
+
+  // Keep a local copy of the friend's name for the header
+  const [friendName, setFriendName] = useState<string>("");
+
+  useEffect(() => {
+    if (digest) {
+      setFriendName(digest.friend_name);
+    }
+  }, [digest]);
+
+  // If no data yet, show a friendly placeholder
+  if (!digest && !isLoading && !isError) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-8 text-center">
+        <h1 className="text-3xl font-bold tracking-tighter mb-4">
+          {friendName || "PatchPal"} Dashboard
+        </h1>
+        <p className="text-zinc-500 max-w-xl mx-auto">
+          Fetching your security digest… the open-source AI is working its magic.
+        </p>
+      </main>
+    );
+  }
+
+  // If error, show a simple error state
+  if (isError) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-8 text-center">
+        <h1 className="text-xl font-medium text-destructive mb-4">
+          Something went wrong
+        </h1>
+        <p className="text-zinc-400 max-w-xl mx-auto">
+          {error?.message || "Unable to load the digest at this time."}
+        </p>
+<button
+          onClick={() => mutate()}
+          className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+        >
+          Retry
+        </button>
+      </main>
+    );
+  }
+
+  // If loading, show text only
+  if (isLoading && !digest) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-8">
+        <p className="text-zinc-500">Loading your security digest…</p>
+      </main>
+    );
+  }
+
+  // At this point we have a digest
+  const vulnerabilities = digest?.vulnerabilities || [];
+  const aiSummary = digest?.ai_summary || "";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <main className="min-h-screen bg-background p-4 md:p-8">
+      {/* Header: Friend name + refresh button */}
+      <header className="mb-6 md:mb-8 flex items-center justify-between flex flex-col md:flex-row gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tighter text-foreground">
+            {friendName || "Friend"}
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-sm text-muted-foreground mt-1">
+            Security digest for {new Date().toLocaleDateString()}
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <button
+          onClick={() => mutate()}
+          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Refresh
+          </button>
+      </header>
+
+      {/* AI Summary Card */}
+      {aiSummary ? (
+        <div className="mb-6 w-full max-w-2xl mx-auto p-4 bg-primary/5 border border-primary/10 rounded-lg">
+          <p className="prose max-w-none text-muted-foreground">
+            {aiSummary}
+          </p>
         </div>
-      </main>
-    </div>
+      ) : null}
+
+      {/* Vulnerability Grid */}
+      {vulnerabilities.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
+          {vulnerabilities.map((vuln, idx) => (
+            <div
+              key={vuln.cve_id || vuln.title}
+              className="p-4 hover:shadow-md transition-shadow rounded-border"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-foreground">
+                    {vuln.title}
+                  </h3>
+                  <p className="text-xs text-muted-foreground truncated">
+                    {vuln.raw_description?.substring(0, 120)}...
+                  </p>
+                </div>
+                <span
+                  className={
+                    vuln.severity === "Critical"
+                      ? "bg-destructive/10 text-destructive text-xs"
+                      : vuln.severity === "High"
+                      ? "bg-primary/10 text-primary text-xs"
+                      : "bg-muted/10 text-muted-foreground text-xs"
+                  }
+                >
+                  {vuln.severity}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                <div>
+                  <div className="text-muted-foreground">Affects</div>
+                  <p className="font-medium">{vuln.affected_tech?.join(", ") || "Unknown"}</p>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Source</div>
+                  <a
+                    href={vuln.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-primary hover:text-primary/80 block mt-1"
+                  >
+                    View source
+                  </a>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {/* Empty state */}
+      {vulnerabilities.length === 0 && !aiSummary && (
+        <div className="col-span-full text-center py-12">
+          <Shield className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground">
+            No relevant threats found for your tech stack. You're all clear!
+          </p>
+        </div>
+      )}
+    </main>
   );
 }
