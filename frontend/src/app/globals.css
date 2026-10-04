@@ -2,36 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Design-taste-frontend Anti-Slop Rules applied:
-   - No generic AI purple gradients or neon defaults.
-   - Neutral gray palette (Zinc/Slate), one accent only.
-   - Geist font set in Tailwind config.
-*/
 :root {
-  --background: #fafafa;
-  --foreground: #18181b;
-  --accent: #06b6d4; /* Electric Blue, safe contrast, not purple */
+  --background: #f7f5f2;
+  --foreground: #1f1f1f;
+  --accent: #c97d4b;
+  --surface: #ffffff;
+  --border: #e5e0da;
 }
 
-/* Responsiveness: viewport stability */
-html { height: 100%; }
+html {
+  height: 100%;
+}
 
 body {
-  font-family: "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-family: Georgia, 'Times New Roman', Times, serif;
   background: var(--background);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
-/* Stop layout jumping on mobile */
-html, body, #__next { height: 100%; overflow-x: hidden; }
+html,
+body,
+#__next {
+  min-height: 100%;
+  overflow-x: hidden;
+}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f0f0f;
-    --foreground: #e5e5e5;
-    --accent: #0a84a1;
-  }
-  body { background: var(--background); color: var(--foreground); }
+a {
+  color: var(--accent);
+}
+
+button {
+  cursor: default;
 }

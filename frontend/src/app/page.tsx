@@ -1,173 +1,135 @@
-/* --------------------------------------------------------------
-   PatchPal Dashboard — Frontend (MVP simplified)
-   Design: `design-taste-frontend` rules applied
-   - Geist font, neutral gray palette, one accent color only
-   - Restrained motion, CSS Grid Bento layout
-   -------------------------------------------------------------- */
-
 "use client";
 
-import { useDigest, Digest, Vulnerability } from "@/hooks/use-digest";
+import { useDigest } from "@/hooks/use-digest";
+import { ShieldCheck, MagnifyingGlass } from "@phosphor-icons/react";
+import { useMemo, useState } from "react";
 
-import { motion } from "motion/react";
-import { Shield } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+function SeverityDot({ severity }: { severity: string }) {
+  const map: Record<string, string> = {
+    Critical: "bg-red-500",
+    High: "bg-orange-500",
+    Medium: "bg-amber-500",
+    Low: "bg-zinc-400",
+  };
+  return <span className={`inline-block size-2 rounded-full ${map[severity] ?? map.Low}`} aria-label={severity} />;
+}
+
+function stripHtml(raw: string) {
+  return raw.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+}
 
 export default function Home() {
-  const {
-    data: digest,
-    isLoading,
-    isError,
-    error,
-    mutate,
-  } = useDigest();
+  const { data: digest, isLoading, isError, error, mutate } = useDigest();
+  const [query, setQuery] = useState("");
+  const [severityFilter, setSeverityFilter] = useState<"all" | "critical" | "high" | "medium" | "low">("all");
 
-  // Keep a local copy of the friend's name for the header
-  const [friendName, setFriendName] = useState<string>("");
+  const filtered = useMemo(() => {
+    return (digest?.vulnerabilities ?? []).filter((t) => {
+      const matchesQuery =
+        !query ||
+        t.title.toLowerCase().includes(query.toLowerCase()) ||
+        (t.affected_tech ?? []).some((tech) => tech.toLowerCase().includes(query.toLowerCase()));
+      const matchesSeverity = severityFilter === "all" || t.severity.toLowerCase() === severityFilter;
+      return matchesQuery && matchesSeverity;
+    });
+  }, [digest, query, severityFilter]);
 
-  useEffect(() => {
-    if (digest) {
-      setFriendName(digest.friend_name);
-    }
-  }, [digest]);
-
-  // If no data yet, show a friendly placeholder
-  if (!digest && !isLoading && !isError) {
+  if (isLoading && !digest) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tighter mb-4">
-          {friendName || "PatchPal"} Dashboard
-        </h1>
-        <p className="text-zinc-500 max-w-xl mx-auto">
-          Fetching your security digest… the open-source AI is working its magic.
-        </p>
+      <main className="flex min-h-screen items-center justify-center bg-[#f7f5f2]">
+        <p className="text-base text-zinc-500">Loading your digest...</p>
       </main>
     );
   }
 
-  // If error, show a simple error state
   if (isError) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-8 text-center">
-        <h1 className="text-xl font-medium text-destructive mb-4">
-          Something went wrong
-        </h1>
-        <p className="text-zinc-400 max-w-xl mx-auto">
-          {error?.message || "Unable to load the digest at this time."}
-        </p>
-<button
-          onClick={() => mutate()}
-          className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
-        >
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#f7f5f2] p-8 text-center">
+        <p className="text-lg font-medium text-red-600">Something went wrong</p>
+        <p className="max-w-lg text-base text-zinc-600">{error?.message ?? "Unable to load the digest."}</p>
+        <button onClick={() => mutate()} className="rounded-md bg-[#1f1f1f] px-4 py-2 text-sm font-medium text-white hover:bg-[#333333]">
           Retry
         </button>
       </main>
     );
   }
 
-  // If loading, show text only
-  if (isLoading && !digest) {
-    return (
-      <main className="min-h-screen flex items-center justify-center p-8">
-        <p className="text-zinc-500">Loading your security digest…</p>
-      </main>
-    );
-  }
-
-  // At this point we have a digest
-  const vulnerabilities = digest?.vulnerabilities || [];
-  const aiSummary = digest?.ai_summary || "";
-
   return (
-    <main className="min-h-screen bg-background p-4 md:p-8">
-      {/* Header: Friend name + refresh button */}
-      <header className="mb-6 md:mb-8 flex items-center justify-between flex flex-col md:flex-row gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tighter text-foreground">
-            {friendName || "Friend"}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Security digest for {new Date().toLocaleDateString()}
-          </p>
-        </div>
+    <main className="min-h-screen bg-[#f7f5f2] text-[#1f1f1f]">
+      <div className="mx-auto max-w-4xl space-y-16 p-6 md:p-16">
+        <header className="space-y-3">
+          <h1 className="text-5xl font-bold tracking-tight">{digest?.friend_name ?? "Friend"} Digest</h1>
+          <p className="text-xl text-zinc-600">{digest?.date_generated ?? "Today"}</p>
+        </header>
 
-        <button
-          onClick={() => mutate()}
-          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 rounded-full border border-[#e5e0da] bg-white px-5 py-4">
+            <MagnifyingGlass className="size-5 text-zinc-400" />
+            <input
+              type="text"
+              placeholder="Search threats or tech..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-56 bg-transparent text-lg outline-none placeholder:text-zinc-400"
+            />
+          </div>
+          <button
+            onClick={() => mutate()}
+            className="rounded-full bg-[#1f1f1f] px-6 py-3 text-base font-medium text-white hover:bg-[#333333]"
           >
             Refresh
           </button>
-      </header>
-
-      {/* AI Summary Card */}
-      {aiSummary ? (
-        <div className="mb-6 w-full max-w-2xl mx-auto p-4 bg-primary/5 border border-primary/10 rounded-lg">
-          <p className="prose max-w-none text-muted-foreground">
-            {aiSummary}
-          </p>
         </div>
-      ) : null}
 
-      {/* Vulnerability Grid */}
-      {vulnerabilities.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
-          {vulnerabilities.map((vuln, idx) => (
-            <div
-              key={vuln.cve_id || vuln.title}
-              className="p-4 hover:shadow-md transition-shadow rounded-border"
+        {digest?.ai_summary ? (
+          <section className="border-l-4 border-[#c97d4b] bg-white p-8">
+            <h2 className="mb-4 text-2xl font-semibold">AI Advisory</h2>
+            <p className="text-lg leading-relaxed text-zinc-700">{digest.ai_summary}</p>
+          </section>
+        ) : null}
+
+        <div className="flex gap-3">
+          {(["all", "critical", "high", "medium", "low"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setSeverityFilter(s)}
+              className={`rounded-full px-5 py-2 text-base font-medium capitalize ${
+                severityFilter === s
+                  ? "bg-[#c97d4b] text-white"
+                  : "border border-[#e5e0da] bg-white text-zinc-600 hover:bg-[#e5e0da]"
+              }`}
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-sm font-medium text-foreground">
-                    {vuln.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground truncated">
-                    {vuln.raw_description?.substring(0, 120)}...
-                  </p>
-                </div>
-                <span
-                  className={
-                    vuln.severity === "Critical"
-                      ? "bg-destructive/10 text-destructive text-xs"
-                      : vuln.severity === "High"
-                      ? "bg-primary/10 text-primary text-xs"
-                      : "bg-muted/10 text-muted-foreground text-xs"
-                  }
-                >
-                  {vuln.severity}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-xs mt-2">
-                <div>
-                  <div className="text-muted-foreground">Affects</div>
-                  <p className="font-medium">{vuln.affected_tech?.join(", ") || "Unknown"}</p>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Source</div>
-                  <a
-                    href={vuln.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline text-primary hover:text-primary/80 block mt-1"
-                  >
-                    View source
-                  </a>
-                </div>
-              </div>
-            </div>
+              {s}
+            </button>
           ))}
         </div>
-      ) : null}
 
-      {/* Empty state */}
-      {vulnerabilities.length === 0 && !aiSummary && (
-        <div className="col-span-full text-center py-12">
-          <Shield className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">
-            No relevant threats found for your tech stack. You're all clear!
-          </p>
-        </div>
-      )}
+        <section className="space-y-10">
+          <h2 className="text-3xl font-semibold">Vulnerabilities</h2>
+          {filtered.length > 0 ? (
+            <div className="divide-y divide-[#e5e0da]">
+              {filtered.map((t, idx) => (
+                <article key={t.cve_id ?? idx} className="py-8">
+                  <div className="mb-3 flex items-center gap-3">
+                    <SeverityDot severity={t.severity} />
+                    <h3 className="text-xl font-semibold leading-snug">{t.title}</h3>
+                  </div>
+                  <p className="text-sm text-zinc-500">{t.severity} · {t.affected_tech?.join(", ") ?? "Unknown"}</p>
+                  <p className="mt-3 text-lg leading-relaxed text-zinc-700">{stripHtml(t.raw_description)}</p>
+                  <a href={t.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-block text-base font-medium text-[#c97d4b] hover:underline">
+                    View source
+                  </a>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#e5e0da] p-16 text-center">
+              <ShieldCheck className="mb-6 size-16 text-zinc-400" />
+              <p className="text-lg text-zinc-500">No matching threats. Adjust filters or refresh.</p>
+            </div>
+          )}
+        </section>
+      </div>
     </main>
   );
 }

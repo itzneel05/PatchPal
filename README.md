@@ -2,6 +2,8 @@
 
 **Hacktoberfest 2026 - Weekend Challenge: "Build for a Friend"**
 
+**GitHub:** https://github.com/itzneel05/PatchPal.git
+
 PatchPal is a local-first web application that fetches security vulnerability feeds and trending threat news, filters them by a friend's tech stack, and uses Gemma (open-source AI via Ollama) to summarize them into a beautiful, actionable daily dashboard.
 
 ## Why Open Innovation Matters

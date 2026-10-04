@@ -28,7 +28,7 @@ export function useDigest() {
   const { data, error, isLoading, mutate } = useSWR<
     Digest,
     Error
-  >("/api/digest", fetcher, {
+  >("http://localhost:8000/api/digest", fetcher, {
     revalidateOnFocus: true,
     revalidateIfStale: true,
     refreshInterval: 60000, // 1 minute
