@@ -2,8 +2,8 @@ from patchpal.core.models import FriendProfile, Vulnerability, Digest
 from datetime import date
 
 def test_friend_profile_creation():
-    profile = FriendProfile(name="Alice", tech_stack=["Python", "React"])
-    assert profile.name == "Alice"
+    profile = FriendProfile(name="Diya", tech_stack=["Python", "React"])
+    assert profile.name == "Diya"
     assert profile.severity_threshold == "medium"
     assert "Python" in profile.tech_stack
 
@@ -23,10 +23,10 @@ def test_vulnerability_creation():
 
 def test_digest_creation():
     digest = Digest(
-        friend_name="Alice",
+        friend_name="Diya",
         date_generated=date.today(),
         ai_summary="All good today, nothing critical in your stack."
     )
-    assert digest.friend_name == "Alice"
+    assert digest.friend_name == "Diya"
     assert digest.vulnerabilities == []
     assert "All good" in digest.ai_summary

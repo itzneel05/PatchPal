@@ -24,7 +24,7 @@ def load_profile(filepath: str | Path) -> FriendProfile:
 def create_example_profile(filepath: str | Path) -> None:
     """Creates an example friend profile at the given path."""
     example_data = {
-        "name": "Jane",
+        "name": "Parth",
         "tech_stack": ["React", "Next.js", "Python", "FastAPI", "PostgreSQL"],
         "severity_threshold": "medium"
     }

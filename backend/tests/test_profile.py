@@ -8,18 +8,18 @@ from patchpal.core.models import FriendProfile
 def test_load_valid_profile(tmp_path):
     # Create a temporary YAML file
     yaml_content = """
-    name: Bob
+    name: Aarav
     tech_stack:
       - Go
       - Docker
       - Kubernetes
     severity_threshold: high
     """
-    filepath = tmp_path / "bob.yaml"
+    filepath = tmp_path / "aarav.yaml"
     filepath.write_text(yaml_content)
 
     profile = load_profile(filepath)
-    assert profile.name == "Bob"
+    assert profile.name == "Aarav"
     assert profile.severity_threshold == "high"
     assert "Docker" in profile.tech_stack
     assert len(profile.tech_stack) == 3
@@ -48,5 +48,5 @@ def test_create_example_profile(tmp_path):
     
     # Verify it can be loaded
     profile = load_profile(filepath)
-    assert profile.name == "Jane"
+    assert profile.name == "Parth"
     assert "FastAPI" in profile.tech_stack
