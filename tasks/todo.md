@@ -3,14 +3,14 @@
 **Description:** Initialize the `backend/` directory, set up `pyproject.toml` with dependencies, configure linting/testing (ruff, pytest), and create the entry points.
 
 **Acceptance criteria:**
-- [ ] `pyproject.toml` defines dependencies (fastapi, uvicorn, httpx, feedparser, ollama, pyyaml, pydantic, serpapi).
-- [ ] `backend/src/patchpal/` and `backend/tests/` directories exist with `__init__.py`.
-- [ ] `ruff` and `pytest` configuration included.
-- [ ] `pip install -e ".[dev]"` installs successfully.
+- [x] `pyproject.toml` defines dependencies (fastapi, uvicorn, httpx, feedparser, ollama, pyyaml, pydantic, serpapi).
+- [x] `backend/src/patchpal/` and `backend/tests/` directories exist with `__init__.py`.
+- [x] `ruff` and `pytest` configuration included.
+- [x] `pip install -e ".[dev]"` installs successfully.
 
 **Verification:**
-- [ ] Tests pass: `pytest backend/tests/` (runs without error)
-- [ ] Build succeeds: `pip install -e .`
+- [x] Tests pass: `pytest backend/tests/` (runs without error)
+- [x] Build succeeds: `pip install -e .`
 
 **Dependencies:** None
 **Estimated scope:** Small
